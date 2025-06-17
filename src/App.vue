@@ -1,5 +1,7 @@
 <script setup lang="ts">
-
+import  TimetableGrid from './components/TimetableGrid.vue'
+import draggable from 'vuedraggable'
+import {ref} from "vue";
 const schedule = [
   {
     time: "08:00-08:35",
@@ -104,6 +106,28 @@ const days2 = [
   {key: 'friday', label: 'Friday / Thứ Sáu'}
 ]
 
+const schedule2 = ref([
+  {
+    time: "08:00-08:35",
+    monday: [
+      { class: "12A1", teacher: "Thầy A", assistant: "Cô B" },
+      { class: "12A2", teacher: "Thầy C", assistant: "Cô D" },
+    ],
+    tuesday: [
+      { class: "12A1", teacher: "Thầy A", assistant: "Cô B" },
+    ],
+  },
+  {
+    time: "08:35-09:10",
+    monday: [
+      { class: "11A1", teacher: "Thầy E", assistant: "Cô F" },
+    ],
+    tuesday: [
+      { class: "11A2", teacher: "Thầy G", assistant: "Cô H" },
+    ],
+  },
+])
+
 // Tính số lượng tiết học lớn nhất theo từng ngày
 const getMaxSessionsPerDay = (schedule: any, days2: any) => {
   return days2.map((day: any) => {
@@ -206,8 +230,71 @@ const daysWithMax = getMaxSessionsPerDay(schedule, days2);
       </template>
       </tbody>
     </table>
+
+    <br>
+    <table class="schedule-table">
+      <thead>
+      <tr>
+        <th :rowspan="2">Date/Time</th>
+        <template v-for="day in daysWithMax" :key="day.key">
+          <th :colspan="day.max">{{ day.label }}</th>
+        </template>
+      </tr>
+      </thead>
+
+      <tbody>
+      <template v-for="row in schedule" :key="row.time">
+        <tr>
+          <td>{{ row.time }}</td>
+          <!-- Tên lớp -->
+          <template v-for="day in daysWithMax" :key="day.key + '-class'">
+            <template v-for="i in day.max">
+              <td>
+               <p> {{ row[day.key]?.[i - 1]?.class || '' }} </p>
+               <p> {{ row[day.key]?.[i - 1]?.teacher || '' }}</p>
+               <p>  {{ row[day.key]?.[i - 1]?.assistant || '' }}</p>
+              </td>
+            </template>
+            <td v-if="day.max === 0"></td>
+          </template>
+        </tr>
+      </template>
+      </tbody>
+    </table>
+
+    <TimetableGrid />
   </div>
 
+
+  <el-table :data="[]" style="width: 100%">
+    <el-table-column label="Time" width="120" />
+    <el-table-column label="Monday" />
+    <el-table-column label="Tuesday" />
+  </el-table>
+
+  <draggable v-model="schedule" tag="tbody" item-key="time">
+    <template #item="{ element }">
+      <tr>
+        <td>{{ element.time }}</td>
+        <td>
+          <div v-for="item in element.monday" :key="item.class">
+            <strong>{{ item.class }}</strong><br />
+            <span>{{ item.teacher }}</span><br />
+            <span style="color: gray">{{ item.assistant }}</span>
+            <hr />
+          </div>
+        </td>
+        <td>
+          <div v-for="item in element.tuesday" :key="item.class">
+            <strong>{{ item.class }}</strong><br />
+            <span>{{ item.teacher }}</span><br />
+            <span style="color: gray">{{ item.assistant }}</span>
+            <hr />
+          </div>
+        </td>
+      </tr>
+    </template>
+  </draggable>
 </template>
 
 <style scoped>

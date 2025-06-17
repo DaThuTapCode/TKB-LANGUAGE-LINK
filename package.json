@@ -9,8 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "ag-grid-community": "^33.3.2",
+    "ag-grid-vue3": "^33.3.2",
     "element-plus": "^2.10.2",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
