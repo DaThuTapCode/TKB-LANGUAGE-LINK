@@ -8,7 +8,6 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 
 ModuleRegistry.registerModules([ AllCommunityModule ]);
 
-
 const schedule = ref([
   {
     time: "08:00-08:35",
@@ -114,6 +113,33 @@ const schedule = ref([
   },
 ]);
 
+
+
+// Modal state
+const showModal = ref(false)
+const selectedClass = ref<any>(null)
+
+// Xử lý khi click vào ô
+const onCellClicked = (params: any) => {
+  console.log(params)
+  console.log(params.colDef.slotIndex)
+  if (params.colDef.dayKey && params.colDef.slotIndex) {
+    const dayKey = params.colDef.dayKey
+    const slotIndex = params.colDef.slotIndex - 1
+    const classData = params.data[dayKey]?.[slotIndex]
+
+    if (classData) {
+      selectedClass.value = {
+        ...classData,
+        day: params.colDef.headerName.replace('Slot ', ''),
+        time: params.data.time
+      }
+      showModal.value = true
+    }
+  }
+}
+
+
 // Tính toán số slot tối đa mỗi ngày
 const daysWithMax = [
   { key: 'monday', label: 'Monday', max: calculateMaxSlots('monday') },
@@ -121,7 +147,6 @@ const daysWithMax = [
   { key: 'wednesday', label: 'Wednesday', max: calculateMaxSlots('wednesday') },
   { key: 'thursday', label: 'Thursday', max: calculateMaxSlots('thursday') },
   { key: 'friday', label: 'Friday', max: calculateMaxSlots('friday') },
-  // Add other days...
 ]
 
 function calculateMaxSlots(dayKey: string): number {
@@ -159,7 +184,8 @@ const columnDefs = ref([
     field: 'time',
     pinned: 'left',
     width: 120,
-    cellStyle: { textAlign: 'center' }
+    cellStyle: { textAlign: 'center' },
+    headerClass: 'header-center'
   }
 ])
 
@@ -177,7 +203,8 @@ daysWithMax.forEach(day => {
         slotIndex: i,
         cellRenderer: classCellRenderer,
         autoHeight: true,
-        cellStyle: { padding: '0' }
+        cellStyle: { padding: '0', textAlign: 'center'  },
+        headerClass: 'header-center'
       })
     }
 
@@ -188,6 +215,16 @@ daysWithMax.forEach(day => {
       headerClass: 'day-header'
     })
   } else {
+    const children = []
+    children.push({
+      headerName: `Không có lịch học`,
+      dayKey: day.key,
+      slotIndex: i,
+      cellRenderer: classCellRenderer,
+      autoHeight: true,
+      cellStyle: { padding: '0', textAlign: 'center'  },
+      headerClass: 'header-center'
+    });
     // Ngày không có tiết học
     columnDefs.value.push({
       headerName: day.label,
@@ -195,7 +232,7 @@ daysWithMax.forEach(day => {
       cellStyle: { textAlign: 'center', color: '#999' },
       cellRenderer: () => '-',
       headerClass: 'day-header'
-    })
+    });
   }
 })
 
@@ -213,7 +250,8 @@ const gridOptions = {
   headerHeight: 50,
   suppressHorizontalScroll: true,
   suppressColumnVirtualisation: true,
-  getRowHeight: () => null // Sử dụng autoHeight
+  getRowHeight: () => null, // Sử dụng autoHeight
+  onCellClicked: onCellClicked,
 }
 </script>
 
@@ -226,14 +264,23 @@ const gridOptions = {
         :gridOptions="gridOptions"
     />
   </div>
+
+  <!-- Modal chi tiết -->
+  <el-dialog v-model="showModal" title="Chi tiết lớp học" width="30%">
+    <div v-if="selectedClass" class="class-detail">
+      <p><strong>Thời gian:</strong> {{ selectedClass.time }}</p>
+      <p><strong>Slot:</strong> {{ selectedClass.day }}</p>
+      <p><strong>Lớp:</strong> {{ selectedClass.class }}</p>
+      <p><strong>Giáo viên:</strong> {{ selectedClass.teacher }}</p>
+      <p><strong>Trợ giảng:</strong> {{ selectedClass.assistant }}</p>
+    </div>
+    <template #footer>
+      <el-button @click="showModal = false">Đóng</el-button>
+    </template>
+  </el-dialog>
 </template>
 
-<style>
-.ag-theme-alpine {
-  --ag-header-background-color: #f8f9fa;
-  --ag-border-color: #dee2e6;
-  --ag-cell-horizontal-padding: 0;
-}
+<style scoped>
 
 .day-header {
   background-color: #f0f2f5 !important;
@@ -250,5 +297,19 @@ const gridOptions = {
 
 .class-info p {
   margin: 2px 0;
+}
+</style>
+
+
+<style>
+.ag-theme-alpine {
+  --ag-header-background-color: #f8f9fa;
+  --ag-border-color: #dee2e6;
+  --ag-cell-horizontal-padding: 0;
+}
+
+.ag-theme-alpine .header-center .ag-header-cell-label {
+  justify-content: center !important;
+  text-align: center !important;
 }
 </style>
