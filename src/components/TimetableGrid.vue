@@ -215,16 +215,6 @@ daysWithMax.forEach(day => {
       headerClass: 'day-header'
     })
   } else {
-    const children = []
-    children.push({
-      headerName: `Không có lịch học`,
-      dayKey: day.key,
-      slotIndex: i,
-      cellRenderer: classCellRenderer,
-      autoHeight: true,
-      cellStyle: { padding: '0', textAlign: 'center'  },
-      headerClass: 'header-center'
-    });
     // Ngày không có tiết học
     columnDefs.value.push({
       headerName: day.label,
