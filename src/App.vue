@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import  TimetableGrid from './components/TimetableGrid.vue'
+import TimetableGrid from './components/TimetableGrid.vue'
 import draggable from 'vuedraggable'
 import {ref} from "vue";
+
 const schedule = [
   {
     time: "08:00-08:35",
@@ -95,7 +96,16 @@ const schedule = [
         assistantColor: "#795548",
       }
     ],
-  }
+    wednesday: [
+      {
+        class: "11A1",
+        teacher: "Cô E",
+        teacherColor: "rgba(255,0,51,0.44)",
+        assistant: "Thầy F",
+        assistantColor: "#795548",
+      }
+    ],
+  },
 ];
 
 const days2 = [
@@ -106,27 +116,6 @@ const days2 = [
   {key: 'friday', label: 'Friday / Thứ Sáu'}
 ]
 
-const schedule2 = ref([
-  {
-    time: "08:00-08:35",
-    monday: [
-      { class: "12A1", teacher: "Thầy A", assistant: "Cô B" },
-      { class: "12A2", teacher: "Thầy C", assistant: "Cô D" },
-    ],
-    tuesday: [
-      { class: "12A1", teacher: "Thầy A", assistant: "Cô B" },
-    ],
-  },
-  {
-    time: "08:35-09:10",
-    monday: [
-      { class: "11A1", teacher: "Thầy E", assistant: "Cô F" },
-    ],
-    tuesday: [
-      { class: "11A2", teacher: "Thầy G", assistant: "Cô H" },
-    ],
-  },
-])
 
 // Tính số lượng tiết học lớn nhất theo từng ngày
 const getMaxSessionsPerDay = (schedule: any, days2: any) => {
@@ -142,6 +131,17 @@ const getMaxSessionsPerDay = (schedule: any, days2: any) => {
 };
 
 const daysWithMax = getMaxSessionsPerDay(schedule, days2);
+
+const arraySpanMethod = ({row, column, rowIndex, columnIndex}) => {
+  // Xử lý logic rowspan/colspan tại đây
+  if (rowIndex === 0 && columnIndex === 0) {
+    return {
+      rowspan: 2,
+      colspan: 1
+    };
+  }
+  // Thêm các điều kiện khác nếu cần
+}
 </script>
 
 <template>
@@ -250,9 +250,9 @@ const daysWithMax = getMaxSessionsPerDay(schedule, days2);
           <template v-for="day in daysWithMax" :key="day.key + '-class'">
             <template v-for="i in day.max">
               <td>
-               <p> {{ row[day.key]?.[i - 1]?.class || '' }} </p>
-               <p> {{ row[day.key]?.[i - 1]?.teacher || '' }}</p>
-               <p>  {{ row[day.key]?.[i - 1]?.assistant || '' }}</p>
+                <p> {{ row[day.key]?.[i - 1]?.class || '' }} </p>
+                <p> {{ row[day.key]?.[i - 1]?.teacher || '' }}</p>
+                <p> {{ row[day.key]?.[i - 1]?.assistant || '' }}</p>
               </td>
             </template>
             <td v-if="day.max === 0"></td>
@@ -262,39 +262,93 @@ const daysWithMax = getMaxSessionsPerDay(schedule, days2);
       </tbody>
     </table>
 
-    <TimetableGrid />
+    <br>
+    <TimetableGrid/>
+    <br>
+    <el-table
+        :data="schedule"
+        border
+        :span-method="arraySpanMethod"
+        style="width: 100%"
+    >
+      <!-- Cột Date/Time với rowspan -->
+      <el-table-column
+          prop="time"
+          label="Date/Time"
+          width="120"
+      />
+
+      <!-- Các cột động theo ngày -->
+      <template v-for="day in daysWithMax" :key="day.key">
+        <el-table-column
+            v-for="i in day.max"
+            :key="`${day.key}-${i}`"
+            :label="day.label"
+        >
+          <template #default="{ row }">
+            <p>{{ row[day.key]?.[i - 1]?.class || '' }}</p>
+            <p>{{ row[day.key]?.[i - 1]?.teacher || '' }}</p>
+            <p>{{ row[day.key]?.[i - 1]?.assistant || '' }}</p>
+          </template>
+        </el-table-column>
+      </template>
+    </el-table>
+
+    <br>
+
+    <el-table
+        :data="schedule"
+        border
+        style="width: 100%"
+        :header-cell-style="{ textAlign: 'center', color: 'black' }"
+    >
+      <!-- Cột Date/Time -->
+      <el-table-column
+          prop="time"
+          label="Date/Time"
+          width="120"
+          fixed
+      />
+
+      <!-- Các cột theo ngày -->
+      <template v-for="day in daysWithMax" :key="day.key">
+        <!-- Trường hợp có tiết học -->
+        <template v-if="day.max > 0">
+          <el-table-column
+              :label="day.label"
+              header-align="center"
+          >
+            <el-table-column
+                v-for="i in day.max"
+                :key="`${day.key}-${i}`"
+                :label="`Slot ${i}`"
+                align="center"
+            >
+              <template #default="{ row }">
+                <div class="class-info" :style="{backgroundColor: row[day.key]?.[i - 1]?.teacherColor}">
+                  <p>{{ row[day.key]?.[i - 1]?.class || '-' }}</p>
+                  <p class="teacher">{{ row[day.key]?.[i - 1]?.teacher || '' }}</p>
+                  <p class="assistant">{{ row[day.key]?.[i - 1]?.assistant || '' }}</p>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table-column>
+        </template>
+
+        <!-- Trường hợp không có tiết học -->
+        <template v-else>
+          <el-table-column
+              :label="day.label"
+              prop="empty"
+              align="center"
+          >
+            <template #default>-</template>
+          </el-table-column>
+        </template>
+      </template>
+    </el-table>
+
   </div>
-
-
-  <el-table :data="[]" style="width: 100%">
-    <el-table-column label="Time" width="120" />
-    <el-table-column label="Monday" />
-    <el-table-column label="Tuesday" />
-  </el-table>
-
-  <draggable v-model="schedule" tag="tbody" item-key="time">
-    <template #item="{ element }">
-      <tr>
-        <td>{{ element.time }}</td>
-        <td>
-          <div v-for="item in element.monday" :key="item.class">
-            <strong>{{ item.class }}</strong><br />
-            <span>{{ item.teacher }}</span><br />
-            <span style="color: gray">{{ item.assistant }}</span>
-            <hr />
-          </div>
-        </td>
-        <td>
-          <div v-for="item in element.tuesday" :key="item.class">
-            <strong>{{ item.class }}</strong><br />
-            <span>{{ item.teacher }}</span><br />
-            <span style="color: gray">{{ item.assistant }}</span>
-            <hr />
-          </div>
-        </td>
-      </tr>
-    </template>
-  </draggable>
 </template>
 
 <style scoped>
