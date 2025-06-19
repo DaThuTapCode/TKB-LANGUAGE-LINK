@@ -216,15 +216,30 @@ daysWithMax.forEach(day => {
     })
   } else {
     // Ngày không có tiết học
+    const children = []
+
+    // Tạo các cột slot con
+
+      children.push({
+        headerName: `Không có lịch dạy`,
+        dayKey: day.key,
+        slotIndex: 1,
+        cellRenderer: classCellRenderer,
+        autoHeight: true,
+        cellStyle: { padding: '0', textAlign: 'center'  },
+        headerClass: 'header-center'
+      })
+
     columnDefs.value.push({
       headerName: day.label,
-      field: 'empty',
+      // field: 'empty',
+      children: children,
       cellStyle: { textAlign: 'center', color: '#999' },
       cellRenderer: () => '-',
       headerClass: 'day-header'
     });
   }
-})
+});
 
 const defaultColDef = {
   resizable: true,
