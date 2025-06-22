@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TimetableGrid from './components/TimetableGrid.vue'
 import TimeTableElementPlus from './components/TimeTableElementPlus.vue'
+import TableExample from './components/TableExample.vue'
 
 </script>
 
@@ -32,6 +33,8 @@ import TimeTableElementPlus from './components/TimeTableElementPlus.vue'
     <TimetableGrid/>
     <br>
     <TimeTableElementPlus/>
+    <br>
+    <TableExample/>
     <br>
   </div>
 </template>

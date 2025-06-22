@@ -1,4 +1,13 @@
 <script setup lang="ts">
+
+
+// Modal state
+import {ref} from "vue";
+
+const showModal = ref(false)
+const selectedClass = ref<any>(null)
+
+
 const schedule = [
   {
     time: "08:00-08:35",
@@ -105,7 +114,9 @@ const schedule = [
 ];
 
 const handleClickDetail = (data: any) => {
-  console.log('data', data)
+  console.log('data', data);
+  showModal.value = true;
+  selectedClass.value = data
 }
 
 const days = [
@@ -163,7 +174,8 @@ const daysWithMax = getMaxSessionsPerDay(schedule, days);
               align="center"
           >
             <template #default="{ row }">
-              <div class="class-info" :style="{backgroundColor: row[day.key]?.[i - 1]?.teacherColor}"  @click="handleClickDetail(row[day.key]?.[i - 1])">
+              <div :style="{backgroundColor: row[day.key]?.[i - 1]?.teacherColor}"
+                   @click="handleClickDetail(row[day.key]?.[i - 1])">
                 <p>{{ row[day.key]?.[i - 1]?.class || '-' }}</p>
                 <p class="teacher">{{ row[day.key]?.[i - 1]?.teacher || '' }}</p>
                 <p class="assistant">{{ row[day.key]?.[i - 1]?.assistant || '' }}</p>
@@ -185,12 +197,26 @@ const daysWithMax = getMaxSessionsPerDay(schedule, days);
             <template #header>
               <span style="color: red; font-weight: bold;">Không có lịch dạy</span>
             </template>
-          <template #default>-</template>
+            <template #default>-</template>
           </el-table-column>
         </el-table-column>
       </template>
     </template>
   </el-table>
+
+  <!-- Modal chi tiết -->
+  <el-dialog v-model="showModal" title="Chi tiết tiết học" width="30%">
+    <div v-if="selectedClass" class="class-detail">
+      <p><strong>Thời gian:</strong> {{ selectedClass.time }}</p>
+      <p><strong>Slot:</strong> {{ selectedClass.day }}</p>
+      <p><strong>Lớp:</strong> {{ selectedClass.class }}</p>
+      <p><strong>Giáo viên:</strong> {{ selectedClass.teacher }}</p>
+      <p><strong>Trợ giảng:</strong> {{ selectedClass.assistant }}</p>
+    </div>
+    <template #footer>
+      <el-button @click="showModal = false">Đóng</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>
